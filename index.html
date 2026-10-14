@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>С Днём Матери! ❤️</title>
+    
+    <!-- Подключение Tailwind CSS для стилей -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Подключение библиотеки Canvas Confetti для праздничного салюта -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- Google Fonts: Caveat (рукописный) и Montserrat (основной) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        // Настройка Tailwind CSS с пользовательскими шрифтами и цветами
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        peach: {
+                            50: '#fff8f6',
+                            100: '#ffeee9',
+                            200: '#ffd9ce',
+                            400: '#ff9e85',
+                            500: '#f07151',
+                        },
+                        rose: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            300: '#fca5a5',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                        }
+                    },
+                    fontFamily: {
+                        handwriting: ['Caveat', 'cursive'],
+                        sans: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Дополнительные стили для анимаций конверта и скролла */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #fff5f5 0%, #fff0f5 50%, #fde8e8 100%);
+        }
+
+        /* Стиль фона для холста с падающими лепестками */
+        #petal-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* 3D Стили для конверта */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+
+        .envelope-flap {
+            transform-origin: top;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .envelope-open .envelope-flap {
+            transform: rotateX(180deg);
+        }
+
+        .letter-content {
+            transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out;
+        }
+
+        .envelope-open .letter-content {
+            transform: translateY(-80px);
+        }
+
+        /* Анимация пульсации для кнопок */
+        @keyframes softPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.4); }
+            50% { transform: scale(1.04); box-shadow: 0 20px 35px -5px rgba(244, 63, 94, 0.6); }
+        }
+
+        .btn-pulse {
+            animation: softPulse 2.5s infinite;
+        }
+
+        /* Красивое размытие фона */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+<body class="text-gray-800 relative min-h-screen pb-20">
+
+    <!-- Холст для анимации падающих лепестков/сердечек -->
+    <canvas id="petal-canvas"></canvas>
+
+    <!-- 1. ШАПКА САЙТА -->
+    <header class="text-center pt-12 pb-6 px-4 relative z-20">
+        <div class="inline-block px-4 py-1.5 bg-rose-100 text-rose-600 rounded-full text-sm font-semibold tracking-wide uppercase mb-3 shadow-sm border border-rose-200">
+            Праздничный день • 14 октября
+        </div>
+        <h1 class="text-4xl sm:text-6xl md:text-7xl font-bold font-handwriting text-rose-600 drop-shadow-sm mb-2">
+            С Днём Матери, мам!
+        </h1>
+        <p class="text-gray-600 text-base sm:text-lg max-w-xl mx-auto font-light">
+            Самая любимая, классная и лучшая мамочка на свете. Эта открытка создана специально для тебя!
+        </p>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-4xl mx-auto px-4 relative z-20 space-y-16">
+
+        <!-- 2. ИНТЕРАКТИВНЫЙ КОНВЕРТ С ПОЗДРАВЛЕНИЕМ -->
+        <section class="flex flex-col items-center justify-center my-8">
+            
+            <div id="envelope-container" class="relative w-full max-w-md h-72 sm:h-80 perspective-1000 cursor-pointer group">
+                
+                <!-- Задняя стена конверта -->
+                <div class="absolute inset-0 bg-rose-200 rounded-2xl shadow-xl transform transition-transform duration-300 group-hover:scale-[1.01]"></div>
+                
+                <!-- Внутренняя карточка / Письмо -->
+                <div id="letter" class="letter-content absolute top-4 left-4 right-4 bg-white p-6 rounded-xl shadow-md border border-rose-100 flex flex-col justify-center items-center text-center opacity-90">
+                    <span class="text-3xl mb-2">💌</span>
+                    <h3 class="font-handwriting text-2xl text-rose-600 font-bold mb-1">Для любимой мамы</h3>
+                    <p class="text-xs text-gray-500">Нажми на кнопку ниже, чтобы прочитать сообщение...</p>
+                </div>
+
+                <!-- Нижняя часть конверта (кармашек) -->
+                <div class="absolute bottom-0 inset-x-0 h-1/2 bg-rose-300 rounded-b-2xl shadow-inner z-20 flex items-center justify-center border-t border-rose-200/50">
+                    <div class="w-12 h-12 rounded-full bg-white/80 shadow-md flex items-center justify-center text-rose-500 font-bold text-xl border border-rose-200">
+                        ❤️
+                    </div>
+                </div>
+
+                <!-- Верхний клапан конверта (крышка) -->
+                <div id="flap" class="envelope-flap absolute top-0 inset-x-0 h-1/2 bg-rose-300 rounded-t-2xl z-30 border-b border-rose-300/40" style="clip-path: polygon(0 0, 50% 100%, 100% 0);"></div>
+            </div>
+
+            <!-- Кнопка открытия конверта -->
+            <button id="open-btn" onclick="openEnvelope()" class="mt-8 px-8 py-3.5 bg-gradient-to-r from-rose-500 to-peach-500 text-white font-medium rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 btn-pulse flex items-center gap-2">
+                <span>✉️ Открыть поздравление</span>
+            </button>
+        </section>
+
+
+        <!-- 3. БЛОК С ТЕКСТОМ ПОЗДРАВЛЕНИЯ -->
+        <!-- РЕДАКТИРУЙТЕ ТЕКСТ В ЭТОМ БЛОКЕ ПОД СЕБЯ -->
+        <section id="greeting-text-block" class="glass-card rounded-3xl p-8 sm:p-12 shadow-2xl relative overflow-hidden transition-all duration-700 opacity-90">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-rose-200 rounded-full blur-2xl opacity-50"></div>
+            <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-peach-200 rounded-full blur-2xl opacity-50"></div>
+
+            <div class="relative z-10 space-y-6 text-gray-700 leading-relaxed text-base sm:text-lg">
+                
+                <h2 class="text-3xl sm:text-4xl font-handwriting font-bold text-rose-600 text-center mb-6">
+                    Любимая Мамочка!
+                </h2>
+
+                <!-- ======================================================== -->
+                <!-- НАЧАЛО ТЕКСТА ПОЗДРАВЛЕНИЯ (ЗДЕСЬ МОЖНО МЕНЯТЬ ТЕКСТ) -->
+                <!-- ======================================================== -->
+                <p>
+                    Поздравляю тебя с этим чудесным праздником — <strong>Днём Матери!</strong> В этот день я хочу сказать тебе самые важные и искренние слова.
+                </p>
+
+                <p>
+                    Спасибо тебе за твою бесконечную заботу, нежность и ласку, за то, что ты всегда рядом, поддерживаешь в любую минуту и веришь в меня так, как никто другой. Твоя улыбка способны согреть даже в самый холодный день
+                </p>
+
+                <p class="p-4 bg-rose-50/80 rounded-2xl border-l-4 border-rose-400 font-handwriting text-2xl text-rose-700 my-4">
+                    «Мама — это единственный человек на свете, чья любовь не знает границ, условий и времени.»
+                </p>
+
+                <p>
+                    Я желаю тебе крепкого здоровья, счастья и как можно больше поводов для радости и улыбок! Пусть каждый твой день будет наполнен светом, уютом и любовью. Я постарасюь тоже радовать тебя, мамуль
+                </p>
+                <!-- ======================================================== -->
+                <!-- КОНЕЦ ТЕКСТА ПОЗДРАВЛЕНИЯ -->
+                <!-- ======================================================== -->
+
+                <div class="pt-6 text-right border-t border-rose-100">
+                    <p class="font-handwriting text-3xl text-rose-600 font-bold">С любовью,</p>
+                    <!-- ВАШЕ ИМЯ ЗДЕСЬ -->
+                    <p class="font-medium text-gray-500 text-sm mt-1">Артемка ❤️</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- 4. ГАЛЕРЕЯ-СЕТКА ДЛЯ ФОТОГРАФИЙ -->
+        <section class="space-y-6">
+            <div class="text-center">
+                <h3 class="text-3xl font-handwriting font-bold text-rose-600">Парочка фоточек</h3>
+                <p class="text-sm text-gray-500">с любимой мамочкой</p>
+            </div>
+
+            <!-- Сетка 3 фото -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                
+                <!-- Фото 1 -->
+                <div class="glass-card p-3 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="relative h-64 rounded-xl overflow-hidden bg-rose-100 mb-3">
+                        <!-- ЗАМЕНИТЕ ССЫЛКУ `src` НА ВАШЕ ФОТО -->
+                        <img src="фото 1.png" 
+                             alt="Фото с мамой" 
+                             class="w-full h-full object-cover"
+                             onerror="this.src='https://placehold.co/600x600/ffe4e6/e11d48?text=Фото+с+Мамой+1'">
+                    </div>
+                    <p class="text-center font-handwriting text-xl text-rose-600">Самая лучшая семья!</p>
+                </div>
+
+                <!-- Фото 2 -->
+                <div class="glass-card p-3 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 sm:translate-y-2">
+                    <div class="relative h-64 rounded-xl overflow-hidden bg-rose-100 mb-3">
+                        <!-- ЗАМЕНИТЕ ССЫЛКУ `src` НА ВАШЕ ФОТО -->
+                        <img src="фото 2.png" 
+                             alt="Фото с мамой" 
+                             class="w-full h-full object-cover"
+                             onerror="this.src='https://placehold.co/600x600/ffe4e6/e11d48?text=Фото+с+Мамой+2'">
+                    </div>
+                    <p class="text-center font-handwriting text-xl text-rose-600">Тебе идет улыбка :3</p>
+                </div>
+
+                <!-- Фото 3 -->
+                <div class="glass-card p-3 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 sm:col-span-2 md:col-span-1">
+                    <div class="relative h-64 rounded-xl overflow-hidden bg-rose-100 mb-3">
+                        <!-- ЗАМЕНИТЕ ССЫЛКУ `src` НА ВАШЕ ФОТО -->
+                        <img src="фото 3.png" 
+                             alt="Фото с мамой" 
+                             class="w-full h-full object-cover"
+                             onerror="this.src='https://placehold.co/600x600/ffe4e6/e11d48?text=Фото+с+Мамой+3'">
+                    </div>
+                    <p class="text-center font-handwriting text-xl text-rose-600">Самая красивая!</p>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- 5. ИНТЕРАКТИВНАЯ КНОПКА САЛЮТА -->
+        <section class="text-center py-8">
+            <div class="glass-card p-8 rounded-3xl max-w-xl mx-auto border border-rose-200">
+                <h4 class="text-2xl font-handwriting font-bold text-rose-600 mb-2">А это типо салютик :3</h4>
+                <p class="text-xs text-gray-500 mb-6">Жмякни ниже!</p>
+                
+                <button onclick="triggerHugs(event)" class="px-8 py-4 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-full shadow-lg hover:shadow-rose-300 transition-all duration-300 transform active:scale-95 flex items-center gap-3 mx-auto">
+                    <span class="text-2xl">🤗</span>
+                    <span>С днем Матери!!</span>
+                    <span class="text-2xl">💖</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Подвал сайта -->
+    <footer class="text-center py-8 text-xs text-gray-400 relative z-20">
+        <p>Специально для мамы • 14 Октября • С любовью ❤️</p>
+    </footer>
+
+
+    <!-- СКРИПТЫ И АНИМАЦИИ -->
+    <script>
+        /* ========================================== */
+        /* 1. АНИМАЦИЯ ОТКРЫТИЯ КОНВЕРТА              */
+        /* ========================================== */
+        let isOpen = false;
+        function openEnvelope() {
+            const container = document.getElementById('envelope-container');
+            const btn = document.getElementById('open-btn');
+            
+            if (!isOpen) {
+                container.classList.add('envelope-open');
+                btn.innerHTML = '<span>📜 Прочитано с любовью</span>';
+                btn.classList.remove('btn-pulse');
+                btn.classList.add('bg-gray-400');
+                
+                // Запуск небольшого конфетти прямо из конверта
+                confetti({
+                    particleCount: 40,
+                    spread: 60,
+                    origin: { y: 0.4 },
+                    colors: ['#f43f5e', '#ff9e85', '#ffd9ce']
+                });
+
+                // Плавная прокрутка к тексту
+                setTimeout(() => {
+                    document.getElementById('greeting-text-block').scrollIntoView({ behavior: 'smooth' });
+                }, 800);
+
+                isOpen = true;
+            }
+        }
+
+        /* ========================================== */
+        /* 2. ПРАЗДНИЧНЫЙ САЛЮТ (САРДЕЧКИ И КОНФЕТТИ)  */
+        /* ========================================== */
+        function triggerHugs(event) {
+            // Координаты нажатия кнопки
+            const rect = event.target.getBoundingClientRect();
+            const x = (rect.left + rect.width / 2) / window.innerWidth;
+            const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+            // Салют сердечками и конфетти
+            confetti({
+                particleCount: 80,
+                spread: 100,
+                origin: { x, y },
+                colors: ['#f43f5e', '#ff9e85', '#fb7185', '#f472b6'],
+                shapes: ['circle'],
+                scalar: 1.2
+            });
+
+            // Второй залп
+            setTimeout(() => {
+                confetti({
+                    particleCount: 50,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#f43f5e', '#fda4af']
+                });
+                confetti({
+                    particleCount: 50,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#f43f5e', '#fda4af']
+                });
+            }, 200);
+        }
+
+        /* ========================================== */
+        /* 3. АНИМАЦИЯ ПАДАЮЩИХ ЛЕПЕСТКОВ/СЕРДЕЧЕК НА CANVAS */
+        /* ========================================== */
+        const canvas = document.getElementById('petal-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Массив элементов (сердечки / лепестки)
+        const particles = [];
+        const particleCount = 25;
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = -20;
+                this.size = Math.random() * 12 + 8;
+                this.speedY = Math.random() * 1 + 0.5;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.opacity = Math.random() * 0.5 + 0.3;
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = (Math.random() - 0.5) * 2;
+                this.type = Math.random() > 0.5 ? 'heart' : 'petal';
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += Math.sin(this.y * 0.01) + this.speedX;
+                this.rotation += this.rotationSpeed;
+
+                if (this.y > canvas.height + 20) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.rotation * Math.PI) / 180);
+                ctx.globalAlpha = this.opacity;
+
+                if (this.type === 'heart') {
+                    // Рисуем маленькое сердечко
+                    ctx.fillStyle = '#f43f5e';
+                    ctx.beginPath();
+                    const topCurveHeight = this.size * 0.3;
+                    ctx.moveTo(0, topCurveHeight);
+                    ctx.bezierCurveTo(0, 0, -this.size / 2, 0, -this.size / 2, topCurveHeight);
+                    ctx.bezierCurveTo(-this.size / 2, (this.size + topCurveHeight) / 2, 0, this.size, 0, this.size);
+                    ctx.bezierCurveTo(0, this.size, this.size / 2, (this.size + topCurveHeight) / 2, this.size / 2, topCurveHeight);
+                    ctx.bezierCurveTo(this.size / 2, 0, 0, 0, 0, topCurveHeight);
+                    ctx.closePath();
+                    ctx.fill();
+                } else {
+                    // Рисуем нежный лепесток
+                    ctx.fillStyle = '#fda4af';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, this.size / 2, this.size, Math.PI / 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // Инициализация частичек
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        // Цикл анимации
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p) => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        window.onload = function() {
+            animate();
+        };
+    </script>
+</body>
+</html>
